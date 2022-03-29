@@ -39,7 +39,7 @@ logger = logging.getLogger()
 
 
 def send_message(bot, message):
-    """Отправление сообщения боту"""
+    """Отправление сообщения боту."""
     chat_id = TELEGRAM_CHAT_ID
     bot.send_message(chat_id, message)
     logger.info(f'Функция {send_message.__name__} работает правильно')
@@ -51,7 +51,7 @@ def send_message(bot, message):
 
 
 def get_api_answer(current_timestamp):
-    """Получение API запроса"""
+    """Получение API запроса."""
     try:
         params = {'from_date': current_timestamp}
         response = requests.get(
@@ -85,6 +85,7 @@ def check_response(response):
         return homeworks
     else:
         raise KeyError('Отсутствует домашные работы')
+
 
 def parse_status(homework):
     """Парс домашки."""
@@ -140,6 +141,7 @@ def main():
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
             time.sleep(RETRY_TIME)
+
 
 if __name__ == '__main__':
     main()

@@ -37,7 +37,9 @@ logging.basicConfig(
 
 logger = logging.getLogger()
 
+
 def send_message(bot, message):
+    """Отправление сообщения боту"""
     chat_id = TELEGRAM_CHAT_ID
     bot.send_message(chat_id, message)
     logger.info(f'Функция {send_message.__name__} работает правильно')
@@ -49,6 +51,7 @@ def send_message(bot, message):
 
 
 def get_api_answer(current_timestamp):
+    """Получение API запроса"""
     try:
         params = {'from_date': current_timestamp}
         response = requests.get(
@@ -73,7 +76,7 @@ def get_api_answer(current_timestamp):
 
 
 def check_response(response):
-    """API response."""
+    """API запросы."""
     if not isinstance(response, dict):
         raise TypeError('Неправильный ответ API')
 
@@ -84,6 +87,7 @@ def check_response(response):
         raise KeyError('Отсутствует домашные работы')
 
 def parse_status(homework):
+    """Парс домашки."""
     status = homework.get('status')
     if status is None:
         raise KeyError(
@@ -121,7 +125,6 @@ def check_tokens():
 
 def main():
     """Основная логика работы бота."""
-
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     current_timestamp = int(time.time())
 

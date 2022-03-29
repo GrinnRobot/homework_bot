@@ -1,7 +1,6 @@
 import logging
 import os
 import time
-from asyncio.log import logger
 
 import requests
 import telegram
@@ -45,7 +44,7 @@ def send_message(bot, message):
     logger.info(f'Функция {send_message.__name__} работает правильно')
     if message['status'] not in HOMEWORK_STATUSES.values():
         logger.debug(
-            f'отсутствие в ответах обновленных статусов'
+            'отсутствие в ответах обновленных статусов'
         )
     return bot.send_message(TELEGRAM_CHAT_ID, message)
 

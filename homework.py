@@ -1,17 +1,12 @@
-from asyncio.log import logger
+import logging
 import os
 import time
-import logging
-from pprint import pprint
-
+from asyncio.log import logger
 
 import requests
-from requests.exceptions import (
-    ConnectionError, MissingSchema
-    )
 import telegram
-
 from dotenv import load_dotenv
+from requests.exceptions import ConnectionError, MissingSchema
 from telegram.ext import Updater
 
 load_dotenv()
@@ -72,7 +67,7 @@ def get_api_answer(current_timestamp):
         logger.error('"ENDPOINT" указан не корректно')
     except NameError:
         chat_id = TELEGRAM_CHAT_ID
-        bot = Bot(token=f'{TELEGRAM_TOKEN}')
+        bot = telegram.Bot(token=f'{TELEGRAM_TOKEN}')
         bot.send_message(chat_id, '"ENDPOINT" не указан')
         logger.error('"ENDPOINT" не указан')
 
@@ -142,7 +137,6 @@ def main():
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
             time.sleep(RETRY_TIME)
-
 
 if __name__ == '__main__':
     main()

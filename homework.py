@@ -1,11 +1,12 @@
 import logging
 import os
 import time
+from http import HTTPStatus
 
 import requests
 import telegram
 from dotenv import load_dotenv
-from requests.exceptions import ConnectionError, MissingSchema
+from requests.exceptions import ConnectionError, HTTPError, MissingSchema
 from telegram.ext import Updater
 
 load_dotenv()
@@ -39,39 +40,37 @@ logger = logging.getLogger()
 
 def send_message(bot, message):
     """Отправление сообщения боту."""
-    chat_id = TELEGRAM_CHAT_ID
-    bot.send_message(chat_id, message)
-    logger.info(f'Функция {send_message.__name__} работает правильно')
-    if message['status'] not in HOMEWORK_STATUSES.values():
-        logger.debug(
-            'отсутствие в ответах обновленных статусов'
-        )
-    return bot.send_message(TELEGRAM_CHAT_ID, message)
+    try:
+        bot.send_message(TELEGRAM_CHAT_ID, message)
+        logger.info(f'Функция {send_message.__name__} работает правильно')
+    except telegram.TelegramError:
+        logger.info(f'Функция {send_message.__name__} работает ошибочно')
 
 
 def get_api_answer(current_timestamp):
-    """Получение API запроса."""
+    """Запрос API."""
     try:
         params = {'from_date': current_timestamp}
         response = requests.get(
             ENDPOINT, headers=HEADERS, params=params
         )
-        if response.status_code == 200:
-            return response.json()
+        if response.status_code == HTTPStatus.OK:
+            response = response.json()
+            return response
         else:
-            raise ValueError('Статус код не 200"')
+            raise HTTPError('Ошибка подключения')
+    
     except ConnectionError:
         logger.critical(f'Нет доступа к "{ENDPOINT}"')
     except MissingSchema:
-        chat_id = TELEGRAM_CHAT_ID
-        bot = telegram.Bot(token=f'{TELEGRAM_TOKEN}')
-        bot.send_message(chat_id, '"ENDPOINT" указан не корректно')
+        send_message(TELEGRAM_CHAT_ID, '"ENDPOINT" указан не корректно')
         logger.error('"ENDPOINT" указан не корректно')
     except NameError:
-        chat_id = TELEGRAM_CHAT_ID
-        bot = telegram.Bot(token=f'{TELEGRAM_TOKEN}')
-        bot.send_message(chat_id, '"ENDPOINT" не указан')
+        send_message(TELEGRAM_CHAT_ID, '"ENDPOINT" не указан')
         logger.error('"ENDPOINT" не указан')
+    except TimeoutError:
+        send_message(TELEGRAM_CHAT_ID, 'Время подключения истекло')
+        logger.error('Время подключения истекло')
 
 
 def check_response(response):
@@ -79,9 +78,9 @@ def check_response(response):
     if not isinstance(response, dict):
         raise TypeError('Неправильный ответ API')
 
-    homeworks = response.get('homeworks')
-    if isinstance(homeworks, list):
-        return homeworks
+    homework = response.get('homeworks')
+    if isinstance(homework, list):
+        return homework
     else:
         raise KeyError('Отсутствует домашные работы')
 
@@ -115,11 +114,8 @@ def check_tokens():
         TELEGRAM_CHAT_ID,
     ]
     for token in token_list:
-        try:
-            if token is None:
-                return False
-        except Exception as error:
-            logging.error(f'Переменные окружения не доступны: {error}')
+        if token is None:
+            return False
     return True
 
 
@@ -127,18 +123,24 @@ def main():
     """Основная логика работы бота."""
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     current_timestamp = int(time.time())
+    er = ''
 
     while True:
         try:
             response = get_api_answer(current_timestamp)
-            homeworks = check_response(response)
-            for homework in homeworks:
+            homework = check_response(response)
+            if homework is not None:
                 message = parse_status(homework)
                 send_message(bot, message)
-                time.sleep(RETRY_TIME)
+            
+            current_timestamp = response['current_date']
+            time.sleep(RETRY_TIME)
 
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
+            logger.error(message)
+            if message != er and send_message(bot, message):
+                er = message
             time.sleep(RETRY_TIME)
 
 

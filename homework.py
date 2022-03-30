@@ -59,7 +59,7 @@ def get_api_answer(current_timestamp):
             return response
         else:
             raise HTTPError('Ошибка подключения')
-    
+
     except ConnectionError:
         logger.critical(f'Нет доступа к "{ENDPOINT}"')
     except MissingSchema:
@@ -132,7 +132,7 @@ def main():
             if homework is not None:
                 message = parse_status(homework)
                 send_message(bot, message)
-            
+
             current_timestamp = response['current_date']
             time.sleep(RETRY_TIME)
 

@@ -12,12 +12,11 @@ from requests.exceptions import (ConnectionError, HTTPError, MissingSchema,
 from telegram.ext import Updater
 
 load_dotenv()
-
 PRACTICUM_TOKEN = os.getenv('PRAKTIKUM_TOKEN')
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 
-RETRY_TIME = 10
+RETRY_TIME = 60
 ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
 HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
 
@@ -27,8 +26,6 @@ HOMEWORK_STATUSES = {
     'reviewing': 'Работа взята на проверку ревьюером.',
     'rejected': 'Работа проверена: у ревьюера есть замечания.'
 }
-
-upd = Updater(token=TELEGRAM_TOKEN, use_context=True)
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -140,6 +137,7 @@ def main():
     """Основная логика работы бота."""
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     current_timestamp = int(time.time())
+    upd = Updater(token=TELEGRAM_TOKEN, use_context=True)
 
     while True:
         try:
@@ -157,6 +155,8 @@ def main():
             logger.error(message)
             send_message(bot, message)
             time.sleep(RETRY_TIME)
+        upd.start_polling()
+        upd.idle()
 
 
 if __name__ == '__main__':

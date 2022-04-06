@@ -76,8 +76,8 @@ def get_api_answer(current_timestamp):
         send_message(TELEGRAM_CHAT_ID, 'Время подключения истекло')
         logger.error('Время подключения истекло')
     except TooManyRedirects:
-        send_message(TELEGRAM_CHAT_ID,'Превышено максимальное кол-во redirect')
-        logger.error('Превышено максимальное кол-во redirect')
+        send_message(TELEGRAM_CHAT_ID, 'Превышено макс. кол-во redirect')
+        logger.error('Превышено макс. кол-во redirect')
 
 
 def check_response(response):

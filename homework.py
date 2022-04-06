@@ -128,8 +128,11 @@ def check_tokens():
         TELEGRAM_CHAT_ID,
     ]
     for token in token_list:
-        if token is None:
-            return False
+        try:
+            if token is None:
+                return False
+        except Exception as error:
+            logging.error(f'Переменные окружения недоступны: {error}')
     return True
 
 
